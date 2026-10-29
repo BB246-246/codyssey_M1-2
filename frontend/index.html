@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>마라탕 트렌드 AI 비서</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23c8372d'/%3E%3Ctext x='16' y='22' font-size='16' text-anchor='middle' fill='white' font-family='sans-serif'%3E辣%3C/text%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="style.css" />
+  <!-- 배포 시 build.mjs가 Vercel 환경변수(API_BASE_URL)로 config.js를 생성한다 -->
+  <script src="config.js"></script>
+  <script>
+    // 화면 깜빡임 방지: 저장된 테마를 CSS 로드 직후 바로 적용
+    try {
+      const t = localStorage.getItem("theme");
+      if (t) document.documentElement.dataset.theme = t;
+    } catch (e) {}
+  </script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">辣</span>
+      <div>
+        <h1>마라탕 트렌드 AI 비서</h1>
+        <p>구글 트렌드 월별 검색 관심도 기반</p>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <span id="server-status" class="status status-pending" role="status">서버 연결 중…</span>
+      <button id="theme-toggle" class="icon-btn" type="button" aria-label="다크 모드 전환">◐</button>
+    </div>
+  </header>
+
+  <div id="wake-banner" class="wake-banner" hidden role="status">
+    서버를 깨우는 중이에요. Render 무료 서버는 한동안 요청이 없으면 잠들어서 첫 요청에 최대 1분 정도 걸릴 수 있어요.
+  </div>
+
+  <nav class="tabs" role="tablist">
+    <button class="tab active" role="tab" data-tab="chat" aria-selected="true">AI 채팅</button>
+    <button class="tab" role="tab" data-tab="data" aria-selected="false">데이터 관리</button>
+  </nav>
+
+  <main>
+    <!-- 채팅 화면 -->
+    <section id="view-chat" class="view chat-layout">
+      <aside class="panel history">
+        <div class="panel-head">
+          <h2>대화 기록</h2>
+          <button id="new-chat" class="btn btn-small" type="button">+ 새 대화</button>
+        </div>
+        <ul id="conv-list" class="conv-list"></ul>
+        <p id="conv-empty" class="muted small" hidden>저장된 대화가 없어요.</p>
+      </aside>
+
+      <section class="panel chat">
+        <div class="panel-head">
+          <h2 id="chat-title">새 대화</h2>
+        </div>
+        <div id="messages" class="messages" aria-live="polite">
+          <div id="chat-empty" class="chat-empty">
+            <p>마라탕 검색 트렌드 데이터를 바탕으로 답해 드려요.</p>
+            <div class="suggestions">
+              <button type="button" class="chip">요즘 마라탕 인기가 어때?</button>
+              <button type="button" class="chip">가장 인기 많았던 때는 언제야?</button>
+              <button type="button" class="chip">어느 계절에 많이 찾아?</button>
+              <button type="button" class="chip">2019년이랑 비교하면 어때?</button>
+            </div>
+          </div>
+        </div>
+        <form id="chat-form" class="chat-form">
+          <textarea id="chat-input" rows="1" maxlength="1000" placeholder="데이터에 대해 물어보세요 (Enter 전송, Shift+Enter 줄바꿈)" required></textarea>
+          <button id="chat-send" class="btn btn-primary" type="submit">전송</button>
+        </form>
+      </section>
+
+      <aside class="panel summary">
+        <div class="panel-head">
+          <h2>데이터 요약</h2>
+          <button id="summary-refresh" class="icon-btn" type="button" aria-label="요약 새로고침">↻</button>
+        </div>
+        <p class="muted small">AI가 답변할 때 참고하는 정보예요.</p>
+        <dl id="summary" class="summary-list"><div class="skeleton"></div></dl>
+      </aside>
+    </section>
+
+    <!-- 데이터 관리 화면 -->
+    <section id="view-data" class="view data-layout" hidden>
+      <div class="panel chart-card">
+        <div class="panel-head">
+          <div>
+            <h2>월별 검색 관심도 추이</h2>
+            <p class="muted small">0~100 상대 지수 (100 = 기간 중 최고 검색량)</p>
+          </div>
+        </div>
+        <div id="chart" class="chart" tabindex="0" aria-label="월별 검색 관심도 선 그래프. 좌우 방향키로 값 확인"></div>
+      </div>
+
+      <div class="panel form-card">
+        <div class="panel-head"><h2 id="form-title">데이터 추가</h2></div>
+        <form id="data-form" class="data-form" novalidate>
+          <label>월
+            <input id="f-date" type="month" required />
+          </label>
+          <label>값 (0~100)
+            <input id="f-value" type="number" min="0" max="100" step="1" required />
+          </label>
+          <label>메모 (선택)
+            <input id="f-memo" type="text" maxlength="200" placeholder="예: 신메뉴 출시" />
+          </label>
+          <p id="form-error" class="form-error" role="alert"></p>
+          <div class="form-actions">
+            <button id="form-submit" class="btn btn-primary" type="submit">추가</button>
+            <button id="form-cancel" class="btn" type="button" hidden>취소</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="panel table-card">
+        <div class="panel-head">
+          <h2>데이터 목록 <span id="data-count" class="muted"></span></h2>
+          <div class="btn-row">
+            <button id="export-csv" class="btn btn-small" type="button">CSV 내보내기</button>
+            <button id="export-json" class="btn btn-small" type="button">JSON 내보내기</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th>월</th><th class="num">값</th><th>메모</th><th class="actions">관리</th></tr></thead>
+            <tbody id="data-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="toast" class="toast" role="status" hidden></div>
+
+  <script src="chart.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

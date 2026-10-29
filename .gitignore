@@ -13,3 +13,6 @@ __pycache__/
 .DS_Store
 Thumbs.db
 .vscode/
+
+# frontend build output
+frontend/dist/
