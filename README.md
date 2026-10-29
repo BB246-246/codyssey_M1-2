@@ -36,17 +36,6 @@
 | 프론트엔드 | HTML / CSS / JavaScript (프레임워크·차트 라이브러리 없이 SVG로 직접 그래프 구현) |
 | 배포 | Render (백엔드), Vercel (프론트엔드) |
 
-## 스크린샷
-
-### 1. 데이터 요약이 보이는 채팅 화면
-![채팅 화면](docs/screenshots/chat.png)
-
-### 2. 데이터 관리 화면 (추가/수정)
-![데이터 관리](docs/screenshots/data.png)
-
-### 3. 대화 기록 불러오기
-![대화 기록](docs/screenshots/history.png)
-
 ---
 
 ## 아키텍처
